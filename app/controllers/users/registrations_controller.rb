@@ -40,6 +40,6 @@ class Users::RegistrationsController < Devise::RegistrationsController
   end
 
   def pick_layout
-    @invite_token.present? ? "golf_auth" : "devise"
+    "golf_auth"
   end
 end

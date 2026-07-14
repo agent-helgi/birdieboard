@@ -30,6 +30,6 @@ class Users::SessionsController < Devise::SessionsController
   end
 
   def pick_layout
-    (params[:invite].present? || session[:pending_invitation_token].present?) ? "golf_auth" : "devise"
+    "golf_auth"
   end
 end
