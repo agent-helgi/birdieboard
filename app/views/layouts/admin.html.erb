@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>BirdieBoard Admin</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta name="turbo-cache-control" content="no-cache">
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <style>
+      :root {
+        --green:    #1a9e3f;
+        --green-l:  #4ade80;
+        --green-bg: rgba(26,158,63,0.10);
+        --bg:       #050a07;
+        --surface:  #0c1410;
+        --surface2: #111c14;
+        --border:   rgba(255,255,255,0.08);
+        --border2:  rgba(74,222,128,0.18);
+        --text:     #f0f0ee;
+        --muted:    #7a9080;
+        --mono:     'SF Mono','Fira Code',monospace;
+      }
+
+      *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+      body { font-family:"Inter",sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; }
+
+      /* Sidebar */
+      .sidebar {
+        position:fixed; top:0; left:0; bottom:0; width:220px;
+        background:var(--surface); border-right:1px solid var(--border2);
+        display:flex; flex-direction:column; z-index:100; overflow-y:auto;
+      }
+      .sidebar-brand {
+        display:flex; align-items:center; gap:10px;
+        padding:18px 16px 14px; border-bottom:1px solid var(--border2);
+        text-decoration:none;
+      }
+      .sidebar-brand .logo-box {
+        width:34px; height:34px; background:linear-gradient(135deg,#0d4a1f,#1e8a3a);
+        border-radius:10px; display:flex; align-items:center; justify-content:center;
+        font-size:18px; flex-shrink:0;
+      }
+      .brand-birdie { font-size:15px; font-weight:800; color:var(--text); }
+      .brand-board  { font-size:15px; font-weight:800; color:var(--green-l); }
+      .brand-sub    { font-size:10px; color:var(--muted); letter-spacing:.06em; text-transform:uppercase; }
+
+      .sidebar-item {
+        display:flex; align-items:center; gap:8px;
+        padding:10px 16px; font-size:13px; font-weight:500;
+        color:var(--muted); text-decoration:none; transition:all .15s;
+        border-left:2px solid transparent;
+      }
+      .sidebar-item:hover { color:var(--text); background:var(--surface2); }
+      .sidebar-item.active { color:var(--green-l); background:var(--green-bg); border-left-color:var(--green); }
+
+      .sidebar-footer {
+        margin-top:auto; padding:14px 16px; border-top:1px solid var(--border);
+      }
+      .sidebar-footer .user-email {
+        font-size:11px; color:var(--muted); margin-bottom:8px;
+        white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-family:var(--mono);
+      }
+
+      /* Layout */
+      .page-body { flex:1; margin-left:220px; min-height:100vh; }
+      .container  { max-width:1100px; margin:0 auto; padding:28px 24px; }
+
+      /* Flash */
+      .flash-notice { background:var(--green-bg); border:1px solid rgba(74,222,128,0.25); color:var(--green-l); padding:12px 16px; border-radius:8px; margin-bottom:20px; font-size:13px; }
+      .flash-alert  { background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25); color:#f87171; padding:12px 16px; border-radius:8px; margin-bottom:20px; font-size:13px; }
+
+      /* Table */
+      table { width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+      th { background:var(--surface2); text-align:left; padding:11px 16px; font-size:11px; text-transform:uppercase; letter-spacing:.6px; color:var(--muted); border-bottom:1px solid var(--border); font-weight:600; }
+      td { padding:13px 16px; border-bottom:1px solid var(--border); font-size:13px; vertical-align:top; }
+      tr:last-child td { border-bottom:none; }
+      tr:hover td { background:var(--surface2); }
+
+      /* Badges */
+      .badge { display:inline-block; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.3px; }
+      .badge-draft    { background:rgba(255,255,255,0.06); color:var(--muted);  border:1px solid var(--border); }
+      .badge-open     { background:rgba(74,222,128,0.1);  color:var(--green-l); border:1px solid rgba(74,222,128,0.25); }
+      .badge-active   { background:rgba(74,222,128,0.15); color:var(--green-l); border:1px solid rgba(74,222,128,0.3); font-weight:700; }
+      .badge-closed   { background:rgba(255,255,255,0.04); color:var(--muted);  border:1px solid var(--border); }
+      .badge-approved { background:rgba(74,222,128,0.12); color:var(--green-l); border:1px solid rgba(74,222,128,0.25); }
+      .badge-new      { background:rgba(59,130,246,0.12); color:#60a5fa;        border:1px solid rgba(59,130,246,0.25); }
+      .badge-skipped  { background:rgba(255,255,255,0.05); color:var(--muted);  border:1px solid var(--border); }
+
+      /* Buttons */
+      .btn { display:inline-block; padding:8px 18px; border-radius:7px; font-size:13px; font-weight:600; font-family:"Inter",sans-serif; text-decoration:none; cursor:pointer; border:none; transition:all .15s; line-height:1.4; }
+      .btn-primary   { background:var(--green); color:#fff; }
+      .btn-primary:hover { background:#16883a; }
+      .btn-secondary { background:var(--surface2); color:var(--text); border:1px solid var(--border2); }
+      .btn-secondary:hover { border-color:rgba(74,222,128,0.4); }
+      .btn-danger    { background:rgba(239,68,68,0.1); color:#f87171; border:1px solid rgba(239,68,68,0.25); }
+      .btn-danger:hover { background:rgba(239,68,68,0.18); }
+      .btn-sm { padding:5px 12px; font-size:12px; }
+
+      /* Cards */
+      .card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:22px; margin-bottom:16px; }
+
+      /* Typography */
+      h1 { font-size:22px; font-weight:800; margin-bottom:4px; letter-spacing:-.3px; }
+      h2 { font-size:16px; font-weight:700; margin-bottom:14px; }
+      .subtitle { color:var(--muted); font-size:13px; margin-bottom:24px; }
+      .actions { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:24px; }
+      a { color:var(--green-l); }
+      a:hover { color:#6bff9a; }
+
+      /* Stats */
+      .stat-row { display:flex; gap:14px; margin-bottom:28px; flex-wrap:wrap; }
+      .stat { background:var(--surface); border:1px solid var(--border2); border-radius:12px; padding:16px 20px; flex:1; min-width:120px; }
+      .stat-number { font-size:28px; font-weight:800; color:var(--green-l); }
+      .stat-label  { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; font-weight:700; margin-top:2px; }
+
+      /* Info rows */
+      .info-row { display:flex; gap:8px; margin-bottom:8px; font-size:13px; }
+      .info-label { color:var(--muted); min-width:110px; font-weight:500; }
+      .info-value { color:var(--text); }
+    </style>
+  </head>
+  <body>
+    <nav class="sidebar">
+      <%= link_to admin_root_path, class: "sidebar-brand" do %>
+        <div class="logo-box">⛳</div>
+        <div>
+          <div><span class="brand-birdie">Birdie</span><span class="brand-board">Board</span></div>
+          <div class="brand-sub">Organiser</div>
+        </div>
+      <% end %>
+
+      <%= link_to "🏆 Tournaments", admin_tournaments_path,
+          class: "sidebar-item #{request.path.start_with?(admin_tournaments_path) ? 'active' : ''}" %>
+
+      <div class="sidebar-footer">
+        <% if user_signed_in? %>
+          <div class="user-email"><%= current_user.email %></div>
+          <%= link_to "Sign out", destroy_user_session_path,
+              style: "display:block;text-align:center;padding:7px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--muted);text-decoration:none;" %>
+        <% end %>
+      </div>
+    </nav>
+
+    <div class="page-body">
+      <div class="container">
+        <% if flash[:notice] %>
+          <div class="flash-notice"><%= flash[:notice] %></div>
+        <% end %>
+        <% if flash[:alert] %>
+          <div class="flash-alert"><%= flash[:alert] %></div>
+        <% end %>
+
+        <%= yield %>
+      </div>
+    </div>
+  </body>
+</html>

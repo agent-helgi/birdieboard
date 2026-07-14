@@ -1,0 +1,13 @@
+<p>Hi there,</p>
+
+<p>You've been invited to play in <strong><%= @tournament.name %></strong>
+<% if @tournament.date %> on <%= @tournament.date.strftime("%-d %B %Y") %><% end %>
+<% if @tournament.location %> at <%= @tournament.location %><% end %>.</p>
+
+<p>
+  <a href="<%= @accept_url %>">Accept your invitation</a>
+</p>
+
+<p>If you don't have a BirdieBoard account yet, you'll be able to create one when you click the link above.</p>
+
+<p>See you on the course.</p>

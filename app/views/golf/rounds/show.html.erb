@@ -1,0 +1,79 @@
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+  <%= link_to "← #{@tournament.name}", golf_tournament_path(@tournament), style: "font-size:13px;color:var(--muted);text-decoration:none;" %>
+</div>
+<h1>Day <%= @round.day_number %> — <%= @round.course_name %></h1>
+<p class="subtitle">Par <%= @round.total_par %> · <%= @round.format&.capitalize %></p>
+
+<!-- My scorecard -->
+<div class="card">
+  <div class="card-header">
+    <span>My Scorecard</span>
+    <% if @my_score.persisted? %>
+      <span class="badge badge-<%= @my_score.status %>"><%= @my_score.status %></span>
+    <% end %>
+  </div>
+
+  <% if @my_score.persisted? && @my_score.gross_scores&.any? %>
+    <div style="font-size:28px;font-weight:800;color:var(--green-l);margin-bottom:4px;"><%= @my_score.stableford_total %> pts</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Stableford total</div>
+
+    <% if @my_score.draft? %>
+      <%= button_to "Submit for Partner Approval",
+          submit_golf_tournament_round_score_path(@tournament, @round, @my_score),
+          method: :post, class: "btn btn-primary btn-sm", data: { turbo: false, confirm: "Submit this card for your partner to countersign?" } %>
+      <%= link_to "Edit", edit_golf_tournament_round_score_path(@tournament, @round, @my_score), class: "btn btn-secondary btn-sm", style: "margin-left:8px;" %>
+    <% elsif @my_score.submitted? %>
+      <div style="font-size:13px;color:#fbbf24;">⏳ Waiting for partner to countersign</div>
+    <% elsif @my_score.approved? %>
+      <div style="font-size:13px;color:var(--green-l);">✅ Countersigned and approved</div>
+    <% end %>
+  <% else %>
+    <div style="color:var(--muted);font-size:13px;margin-bottom:12px;">You haven't entered your scores yet.</div>
+    <%= link_to "Enter Scores", new_golf_tournament_round_score_path(@tournament, @round), class: "btn btn-primary btn-sm" %>
+  <% end %>
+</div>
+
+<!-- Scores to approve -->
+<% pending_approval = @round.scores.where(status: "submitted").where.not(user: current_user).includes(:user) %>
+<% if pending_approval.any? %>
+  <div class="card" style="border-color:rgba(251,191,36,0.3);">
+    <div class="card-header" style="background:rgba(251,191,36,0.06);border-color:rgba(251,191,36,0.2);">
+      <span style="color:#fbbf24;">⏳ Awaiting Your Countersignature</span>
+    </div>
+    <% pending_approval.each do |s| %>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+        <div>
+          <div style="font-weight:700;"><%= s.user.full_name %></div>
+          <div style="font-size:12px;color:var(--muted);"><%= s.stableford_total %> pts</div>
+        </div>
+        <%= button_to "✓ Countersign",
+            approve_golf_tournament_round_score_path(@tournament, @round, s),
+            method: :post, class: "btn btn-primary btn-sm",
+            data: { turbo: false, confirm: "Approve #{s.user.full_name}'s scorecard?" } %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
+<!-- Live leaderboard -->
+<h2>Live Leaderboard</h2>
+<div class="card" style="padding:0;overflow:hidden;">
+  <% if @all_scores.empty? %>
+    <div style="padding:24px;text-align:center;color:var(--muted);font-size:13px;">No approved scores yet.</div>
+  <% else %>
+    <table>
+      <thead><tr><th style="width:36px;">#</th><th>Player</th><th style="text-align:right;">Pts</th></tr></thead>
+      <tbody>
+        <% @all_scores.each_with_index do |s, i| %>
+          <tr>
+            <td style="font-weight:700;color:var(--muted);font-family:var(--mono);"><%= i+1 %></td>
+            <td style="font-weight:<%= i < 3 ? '700' : '400' %>;color:<%= i == 0 ? 'var(--green-l)' : 'var(--text)' %>">
+              <%= i == 0 ? "🏆 " : "" %><%= s.user.full_name %>
+            </td>
+            <td style="text-align:right;font-family:var(--mono);font-weight:800;color:var(--green-l);font-size:16px;"><%= s.stableford_total %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</div>

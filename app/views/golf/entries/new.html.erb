@@ -1,0 +1,71 @@
+<h1>Enter <%= @tournament.name %></h1>
+<p class="subtitle"><%= [@tournament.location, @tournament.date&.strftime("%-d %B %Y")].compact.join(" · ") %></p>
+
+<div class="card">
+  <%= form_with model: [:golf, @tournament, @entry], data: { turbo: false } do |f| %>
+
+    <!-- Handicap -->
+    <div style="margin-bottom:20px;">
+      <label class="field-label">Your Playing Handicap</label>
+      <%= f.number_field :playing_handicap, min: 0, max: 54, class: "field-input",
+          style: "max-width:140px;", placeholder: "e.g. 14" %>
+      <div style="font-size:12px;color:var(--muted);margin-top:6px;">
+        Enter your current handicap index. You can find this in the MyEG app.
+        <% if current_user.handicap_index %>
+          Your stored index is <strong style="color:var(--text)"><%= current_user.handicap_index %></strong>.
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Team -->
+    <% if @tournament.team1_name.present? %>
+      <div style="margin-bottom:20px;">
+        <label class="field-label">Your Team</label>
+        <div style="display:flex;gap:10px;">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:13px;font-weight:600;">
+            <%= f.radio_button :team, "red" %> <%= @tournament.team1_name %>
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:13px;font-weight:600;">
+            <%= f.radio_button :team, "blue" %> <%= @tournament.team2_name %>
+          </label>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- CTTP -->
+    <% if @tournament.cttp_fee_pence > 0 %>
+      <div style="margin-bottom:20px;padding:16px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;">
+        <div style="font-size:13px;font-weight:700;margin-bottom:12px;">Nearest the Pin (optional)</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;">
+            <%= f.check_box :entered_cttp_front %>
+            <span>Front 9 CTTP <span style="color:var(--muted);">— £<%= "%.0f" % @tournament.cttp_fee %></span></span>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;">
+            <%= f.check_box :entered_cttp_back %>
+            <span>Back 9 CTTP <span style="color:var(--muted);">— £<%= "%.0f" % @tournament.cttp_fee %></span></span>
+          </label>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Fee summary -->
+    <div style="background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.2);border-radius:10px;padding:14px 16px;margin-bottom:20px;">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Entry Summary</div>
+      <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px;">
+        <span>Tournament Entry</span><span>£<%= "%.0f" % @tournament.entry_fee %></span>
+      </div>
+      <% if @tournament.cttp_fee_pence > 0 %>
+        <div style="font-size:12px;color:var(--muted);">+ £<%= "%.0f" % @tournament.cttp_fee %> per CTTP pin selected above</div>
+      <% end %>
+      <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(74,222,128,0.2);font-size:13px;color:var(--muted);">
+        Payment will be collected once Stripe is connected.
+      </div>
+    </div>
+
+    <div class="actions">
+      <%= f.submit "Confirm Entry", class: "btn btn-primary" %>
+      <%= link_to "Back", golf_tournament_path(@tournament), class: "btn btn-secondary" %>
+    </div>
+  <% end %>
+</div>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>BirdieBoard</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <style>
+      :root {
+        --green:    #1a9e3f;
+        --green-l:  #4ade80;
+        --green-bg: rgba(26,158,63,0.10);
+        --bg:       #050a07;
+        --surface:  #0c1410;
+        --surface2: #111c14;
+        --border:   rgba(255,255,255,0.08);
+        --border2:  rgba(74,222,128,0.2);
+        --text:     #f0f0ee;
+        --muted:    #7a9080;
+        --mono:     'SF Mono','Fira Code',monospace;
+      }
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: "Inter", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+      .topbar {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border2);
+        padding: 0 20px;
+        display: flex; align-items: center; justify-content: space-between;
+        height: 56px; position: sticky; top: 0; z-index: 50;
+      }
+      .topbar-brand { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+      .topbar-brand .b-birdie { font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
+      .topbar-brand .b-board  { font-size: 18px; font-weight: 800; color: var(--green-l); letter-spacing: -0.5px; }
+      .topbar-nav { display: flex; align-items: center; gap: 4px; }
+      .topbar-link { font-size: 13px; color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; transition: all .15s; }
+      .topbar-link:hover { color: var(--text); background: var(--surface2); }
+      .topbar-link.active { color: var(--green-l); }
+      .topbar-user { font-size: 12px; color: var(--muted); font-family: var(--mono); }
+
+      .main { max-width: 900px; margin: 0 auto; padding: 28px 20px 60px; }
+
+      .flash-notice {
+        background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.25);
+        color: var(--green-l); padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 13px;
+      }
+      .flash-alert {
+        background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25);
+        color: #f87171; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 13px;
+      }
+
+      h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
+      h2 { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+      .subtitle { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+
+      .card {
+        background: var(--surface); border: 1px solid var(--border);
+        border-radius: 14px; padding: 20px; margin-bottom: 16px;
+      }
+      .card-header {
+        background: var(--surface2); border-bottom: 1px solid var(--border);
+        padding: 12px 20px; margin: -20px -20px 16px;
+        border-radius: 14px 14px 0 0; font-size: 13px; font-weight: 700;
+        display: flex; align-items: center; justify-content: space-between;
+      }
+
+      .btn {
+        display: inline-block; padding: 10px 20px; border-radius: 8px;
+        font-size: 13px; font-weight: 700; text-decoration: none;
+        cursor: pointer; border: none; font-family: "Inter", sans-serif;
+        transition: all .15s; line-height: 1;
+      }
+      .btn-primary { background: var(--green); color: #fff; }
+      .btn-primary:hover { background: #16883a; }
+      .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border2); }
+      .btn-secondary:hover { border-color: rgba(74,222,128,0.4); }
+      .btn-sm { padding: 6px 14px; font-size: 12px; }
+
+      .field-label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 6px; letter-spacing: .06em; text-transform: uppercase; }
+      .field-input { width: 100%; background: var(--bg); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 10px 14px; color: var(--text); font-size: 14px; font-family: inherit; }
+      .field-input:focus { outline: none; border-color: var(--green-l); }
+
+      .actions { display: flex; gap: 10px; margin-top: 20px; }
+
+      table { width: 100%; border-collapse: collapse; }
+      th { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; }
+      td { padding: 13px 12px; border-bottom: 1px solid var(--border); font-size: 13px; }
+      tr:last-child td { border-bottom: none; }
+
+      .badge { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; }
+      .badge-paid    { background: rgba(74,222,128,0.12); color: var(--green-l); border: 1px solid rgba(74,222,128,0.25); }
+      .badge-unpaid  { background: rgba(255,255,255,0.06); color: var(--muted); border: 1px solid var(--border); }
+      .badge-draft   { background: rgba(255,255,255,0.06); color: var(--muted); border: 1px solid var(--border); }
+      .badge-submitted { background: rgba(251,191,36,0.1); color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
+      .badge-approved  { background: rgba(74,222,128,0.12); color: var(--green-l); border: 1px solid rgba(74,222,128,0.25); }
+
+      .stat-row { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+      .stat { background: var(--surface); border: 1px solid var(--border2); border-radius: 12px; padding: 16px 20px; flex: 1; min-width: 100px; }
+      .stat-num { font-size: 28px; font-weight: 800; color: var(--green-l); }
+      .stat-lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-weight: 700; margin-top: 2px; }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <%= link_to golf_tournaments_path, class: "topbar-brand" do %>
+        <span class="b-birdie">Birdie</span><span class="b-board">Board</span>
+      <% end %>
+
+      <nav class="topbar-nav">
+        <%= link_to "My Tournaments", golf_tournaments_path, class: "topbar-link #{request.path.start_with?(golf_tournaments_path) ? 'active' : ''}" %>
+      </nav>
+
+      <% if user_signed_in? %>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span class="topbar-user"><%= current_user.full_name.presence || current_user.email %></span>
+          <%= link_to "Sign out", destroy_user_session_path, class: "btn btn-secondary btn-sm" %>
+        </div>
+      <% end %>
+    </header>
+
+    <main class="main">
+      <% if flash[:notice] %>
+        <div class="flash-notice"><%= flash[:notice] %></div>
+      <% end %>
+      <% if flash[:alert] %>
+        <div class="flash-alert"><%= flash[:alert] %></div>
+      <% end %>
+
+      <%= yield %>
+    </main>
+  </body>
+</html>

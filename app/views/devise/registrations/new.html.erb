@@ -1,0 +1,98 @@
+<% is_golf = @invite_token.present? %>
+
+<% if is_golf && @invitation %>
+  <div class="invite-banner">
+    <div class="icon">⛳</div>
+    <div class="text">
+      <div class="t-name">You're invited to <%= @invitation.tournament.name %></div>
+      <div class="t-sub">
+        <%= [@invitation.tournament.date&.strftime("%-d %B %Y"), @invitation.tournament.location].compact.join(" · ") %>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<h2><%= is_golf ? "Create your BirdieBoard account" : "Create account" %></h2>
+
+<%= form_for(resource, as: resource_name, url: registration_path(resource_name), data: { turbo: false }) do |f| %>
+  <%= f.hidden_field :invite_token, value: @invite_token if is_golf %>
+  <%= hidden_field_tag :invite, @invite_token if is_golf %>
+
+  <% if resource.errors.any? %>
+    <div class="flash-alert">
+      <% resource.errors.full_messages.each do |msg| %>
+        <div><%= msg %></div>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if is_golf %>
+    <div class="section-label">Your Details</div>
+
+    <div class="field-row">
+      <div>
+        <%= f.label :name, "First Name", class: "lbl" %>
+        <%= f.text_field :name, autocomplete: "given-name", placeholder: "Jack" %>
+      </div>
+      <div>
+        <%= f.label :surname, "Last Name", class: "lbl" %>
+        <%= f.text_field :surname, autocomplete: "family-name", placeholder: "Lester" %>
+      </div>
+    </div>
+
+    <div class="field">
+      <%= f.label :email, "Email Address", class: "lbl" %>
+      <%= f.email_field :email, autocomplete: "email", placeholder: "you@example.com",
+          value: @invitation&.email %>
+    </div>
+
+    <div class="field">
+      <%= f.label :phone, "Mobile Number", class: "lbl" %>
+      <%= f.telephone_field :phone, autocomplete: "tel", placeholder: "+44 7700 900000" %>
+      <div class="hint">Used to notify you when your partner countersigns your scorecard.</div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="section-label">Handicap</div>
+
+    <div class="field">
+      <%= f.label :handicap_index, "Handicap Index", class: "lbl" %>
+      <%= f.number_field :handicap_index, step: 0.1, min: 0, max: 54, placeholder: "e.g. 14.2" %>
+      <div class="hint">Your current WHS handicap index — find it in the MyEG app or on your scorecard.</div>
+    </div>
+
+    <div class="field">
+      <%= f.label :cdh_number, "CDH Number (optional)", class: "lbl" %>
+      <%= f.text_field :cdh_number, placeholder: "e.g. 123456789",
+          pattern: "[0-9]*", inputmode: "numeric" %>
+      <div class="hint">Optional — allows automatic handicap lookup in future.</div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="section-label">Password</div>
+  <% else %>
+    <div class="field">
+      <%= f.label :email, "Email", class: "lbl" %>
+      <%= f.email_field :email, autocomplete: "email" %>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :password, "Password", class: "lbl" %>
+    <%= f.password_field :password, autocomplete: "new-password",
+        placeholder: "#{@minimum_password_length}+ characters" %>
+  </div>
+
+  <div class="field">
+    <%= f.label :password_confirmation, "Confirm Password", class: "lbl" %>
+    <%= f.password_field :password_confirmation, autocomplete: "new-password" %>
+  </div>
+
+  <%= f.submit is_golf ? "Create Account & Join" : "Create Account",
+      class: "btn-submit" %>
+<% end %>
+
+<div class="auth-links">
+  <%= link_to "Already have an account? Sign in",
+      new_session_path(resource_name) + (@invite_token.present? ? "?invite=#{@invite_token}" : "") %>
+</div>

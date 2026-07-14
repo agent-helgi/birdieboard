@@ -1,0 +1,121 @@
+<%
+  witney_lakes_par = [4,4,4,4,5,3,4,3,5,4,4,3,5,4,3,4,4,4]
+  witney_lakes_si  = [7,17,1,5,13,15,3,11,9,18,12,8,16,2,14,10,4,6]
+
+  current_par = round.course_par || Array.new(18, nil)
+  current_si  = round.course_si  || Array.new(18, nil)
+%>
+
+<%= form_with model: [:admin, tournament, round], data: { turbo: false } do |f| %>
+  <% if round.errors.any? %>
+    <div class="flash-alert">
+      <% round.errors.full_messages.each do |msg| %><div><%= msg %></div><% end %>
+    </div>
+  <% end %>
+
+  <div class="card">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px;">
+      <div>
+        <%= f.label :day_number, "Day Number", style: "display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase;" %>
+        <%= f.number_field :day_number, min: 1, max: 5, style: "width:100%;background:var(--bg);border:1px solid var(--border-2);border-radius:7px;padding:9px 12px;color:var(--text);font-size:14px;font-family:inherit;" %>
+      </div>
+      <div>
+        <%= f.label :course_name, "Course Name", style: "display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase;" %>
+        <%= f.text_field :course_name, placeholder: "e.g. Witney Lakes", style: "width:100%;background:var(--bg);border:1px solid var(--border-2);border-radius:7px;padding:9px 12px;color:var(--text);font-size:14px;font-family:inherit;" %>
+      </div>
+      <div>
+        <%= f.label :format, "Scoring Format", style: "display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase;" %>
+        <%= f.select :format, [["Stableford","stableford"],["Pairs / Joint Stableford","pairs"],["Matchplay","matchplay"]],
+            {}, style: "width:100%;background:var(--bg);border:1px solid var(--border-2);border-radius:7px;padding:9px 12px;color:var(--text);font-size:14px;font-family:inherit;" %>
+      </div>
+    </div>
+
+    <!-- Preset buttons -->
+    <div style="margin-bottom:16px;display:flex;gap:8px;align-items:center;">
+      <span style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;">Load Preset:</span>
+      <button type="button" class="btn btn-secondary btn-sm" onclick="loadPreset('witney')">Witney Lakes</button>
+    </div>
+
+    <!-- 18-hole grid -->
+    <div style="overflow-x:auto;">
+      <table style="background:transparent;border:none;min-width:700px;">
+        <thead>
+          <tr>
+            <th style="background:transparent;width:60px;font-size:11px;">Hole</th>
+            <% (1..18).each do |h| %>
+              <th style="background:<%= h <= 9 ? 'rgba(0,224,160,0.06)' : 'rgba(74,158,212,0.06)' %>;text-align:center;font-size:11px;padding:8px 4px;"><%= h %></th>
+            <% end %>
+            <th style="background:transparent;text-align:center;font-size:11px;">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;border:none;">Par</td>
+            <% (0..17).each do |i| %>
+              <td style="padding:4px 2px;border:none;background:<%= i < 9 ? 'rgba(0,224,160,0.04)' : 'rgba(74,158,212,0.04)' %>">
+                <input type="number" name="round[course_par][]" value="<%= current_par[i] %>"
+                  min="3" max="6" data-hole="<%= i %>" data-type="par"
+                  style="width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:5px;padding:5px 4px;color:var(--text);font-size:13px;font-family:var(--mono);text-align:center;">
+              </td>
+            <% end %>
+            <td style="border:none;text-align:center;font-size:13px;font-weight:700;font-family:var(--mono);color:var(--green);" id="par-total">
+              <%= current_par.sum %>
+            </td>
+          </tr>
+          <tr>
+            <td style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;border:none;">S/I</td>
+            <% (0..17).each do |i| %>
+              <td style="padding:4px 2px;border:none;background:<%= i < 9 ? 'rgba(0,224,160,0.04)' : 'rgba(74,158,212,0.04)' %>">
+                <input type="number" name="round[course_si][]" value="<%= current_si[i] %>"
+                  min="1" max="18" data-hole="<%= i %>" data-type="si"
+                  style="width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:5px;padding:5px 4px;color:var(--text);font-size:13px;font-family:var(--mono);text-align:center;">
+              </td>
+            <% end %>
+            <td style="border:none;"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">
+      Out (holes 1–9) in green · In (holes 10–18) in blue
+    </div>
+  </div>
+
+  <div class="actions">
+    <%= f.submit round.persisted? ? "Save Round" : "Add Round", class: "btn btn-primary" %>
+    <%= link_to "Cancel", admin_tournament_path(tournament), class: "btn btn-secondary" %>
+  </div>
+<% end %>
+
+<script>
+  var PRESETS = {
+    witney: {
+      par: <%= witney_lakes_par.to_json %>,
+      si:  <%= witney_lakes_si.to_json %>
+    }
+  };
+
+  function loadPreset(key) {
+    var p = PRESETS[key];
+    if (!p) return;
+    document.querySelectorAll('[data-type="par"]').forEach(function(el) {
+      el.value = p.par[parseInt(el.dataset.hole)];
+    });
+    document.querySelectorAll('[data-type="si"]').forEach(function(el) {
+      el.value = p.si[parseInt(el.dataset.hole)];
+    });
+    updateParTotal();
+  }
+
+  function updateParTotal() {
+    var total = 0;
+    document.querySelectorAll('[data-type="par"]').forEach(function(el) {
+      total += parseInt(el.value) || 0;
+    });
+    document.getElementById('par-total').textContent = total;
+  }
+
+  document.querySelectorAll('[data-type="par"]').forEach(function(el) {
+    el.addEventListener('input', updateParTotal);
+  });
+</script>

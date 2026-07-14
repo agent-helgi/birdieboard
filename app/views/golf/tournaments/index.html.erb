@@ -1,0 +1,38 @@
+<h1>My Tournaments</h1>
+<p class="subtitle">Tournaments you've been invited to play in.</p>
+
+<% if @tournaments.empty? %>
+  <div class="card" style="text-align:center;padding:48px 24px;">
+    <div style="font-size:48px;margin-bottom:12px;">⛳</div>
+    <div style="font-size:16px;font-weight:700;margin-bottom:6px;">No tournaments yet</div>
+    <div style="color:var(--muted);font-size:13px;">You'll see tournaments here once an organiser sends you an invitation.</div>
+  </div>
+<% else %>
+  <div style="display:grid;gap:14px;">
+    <% @tournaments.each do |t| %>
+      <%= link_to golf_tournament_path(t), style: "text-decoration:none;" do %>
+        <div class="card" style="margin:0;cursor:pointer;transition:border-color .15s;" onmouseover="this.style.borderColor='rgba(74,222,128,0.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
+          <div style="display:flex;align-items:start;justify-content:space-between;gap:12px;">
+            <div>
+              <div style="font-size:17px;font-weight:800;margin-bottom:3px;color:var(--text);"><%= t.name %></div>
+              <div style="font-size:13px;color:var(--muted);">
+                <%= [t.location, t.date&.strftime("%-d %B %Y")].compact.join(" · ") %>
+              </div>
+            </div>
+            <span class="badge badge-<%= t.state %>"><%= t.state %></span>
+          </div>
+          <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;gap:16px;">
+            <div style="font-size:12px;color:var(--muted);">Format: <span style="color:var(--text);text-transform:capitalize;"><%= t.format %></span></div>
+            <div style="font-size:12px;color:var(--muted);"><%= t.entries.count %> players entered</div>
+            <% entry = t.entries.find_by(user: current_user) %>
+            <% if entry %>
+              <span class="badge badge-<%= entry.paid? ? 'paid' : 'unpaid' %>"><%= entry.paid? ? "Paid" : "Entry pending payment" %></span>
+            <% else %>
+              <span style="font-size:12px;color:#fbbf24;font-weight:700;">⚡ Not entered yet</span>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>

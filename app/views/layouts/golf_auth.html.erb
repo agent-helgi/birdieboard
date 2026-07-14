@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>BirdieBoard</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <style>
+      :root { --green:#1a9e3f; --green-l:#4ade80; }
+      *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+
+      body {
+        font-family:"Inter",sans-serif;
+        min-height:100vh;
+        display:flex; align-items:center; justify-content:center;
+        background:#050a07;
+        background-image: radial-gradient(ellipse 70% 45% at 50% -5%, rgba(26,158,63,0.22) 0%, transparent 65%);
+        padding:24px;
+      }
+
+      .wrap { width:100%; max-width:460px; }
+
+      .brand {
+        text-align:center; margin-bottom:28px;
+      }
+      .brand-logo {
+        display:inline-flex; align-items:center; justify-content:center;
+        width:56px; height:56px;
+        background:linear-gradient(135deg,#0d4a1f,#1e8a3a);
+        border-radius:16px; margin-bottom:12px; font-size:26px;
+      }
+      .brand-name { font-size:28px; font-weight:800; letter-spacing:-0.5px; color:#f0f0ee; }
+      .brand-name span { color:#4ade80; }
+      .brand-sub { font-size:13px; color:#5a7a60; margin-top:4px; }
+
+      .card {
+        background:#0c1410;
+        border:1px solid rgba(74,222,128,0.18);
+        border-radius:16px;
+        padding:36px 36px 32px;
+        box-shadow:0 24px 80px rgba(0,0,0,0.5);
+      }
+
+      .invite-banner {
+        background:rgba(74,222,128,0.07);
+        border:1px solid rgba(74,222,128,0.2);
+        border-radius:10px;
+        padding:14px 16px;
+        margin-bottom:24px;
+        display:flex; align-items:center; gap:10px;
+      }
+      .invite-banner .icon { font-size:22px; flex-shrink:0; }
+      .invite-banner .text { font-size:13px; line-height:1.5; }
+      .invite-banner .t-name { font-weight:700; color:#f0f0ee; }
+      .invite-banner .t-sub  { color:#5a7a60; font-size:12px; }
+
+      h2 { font-size:18px; font-weight:800; color:#f0f0ee; margin-bottom:22px; }
+
+      .field { margin-bottom:16px; }
+      .field-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+      label.lbl {
+        display:block; font-size:11px; font-weight:700;
+        color:#5a7a60; margin-bottom:6px;
+        letter-spacing:.06em; text-transform:uppercase;
+      }
+      input[type="text"],
+      input[type="email"],
+      input[type="password"],
+      input[type="tel"],
+      input[type="number"] {
+        width:100%; background:#080e0a;
+        border:1px solid rgba(255,255,255,0.1);
+        border-radius:8px; padding:11px 14px;
+        color:#f0f0ee; font-size:14px; font-family:"Inter",sans-serif;
+        outline:none; transition:border-color .2s;
+      }
+      input:focus { border-color:#4ade80; }
+
+      .hint { font-size:11px; color:#4a6050; margin-top:5px; line-height:1.5; }
+
+      .divider { height:1px; background:rgba(255,255,255,0.06); margin:20px 0; }
+
+      .section-label {
+        font-size:11px; font-weight:700; color:#4ade80;
+        text-transform:uppercase; letter-spacing:.1em;
+        margin-bottom:14px;
+      }
+
+      .btn-submit {
+        display:block; width:100%;
+        padding:14px; background:var(--green);
+        color:#fff; font-size:15px; font-weight:700;
+        font-family:"Inter",sans-serif; border:none;
+        border-radius:10px; cursor:pointer;
+        margin-top:22px; transition:background .2s;
+        letter-spacing:0.01em;
+      }
+      .btn-submit:hover { background:#16883a; }
+
+      .auth-links {
+        margin-top:18px; text-align:center;
+        display:flex; flex-direction:column; gap:8px;
+      }
+      .auth-links a { font-size:13px; color:#4a6050; text-decoration:none; }
+      .auth-links a:hover { color:#4ade80; }
+
+      .flash-alert { background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.2); color:#f87171; padding:12px 14px; border-radius:8px; font-size:13px; margin-bottom:18px; }
+      .flash-notice { background:rgba(74,222,128,0.08); border:1px solid rgba(74,222,128,0.2); color:#4ade80; padding:12px 14px; border-radius:8px; font-size:13px; margin-bottom:18px; }
+
+      .check-row { display:flex; align-items:center; gap:8px; margin-bottom:12px; font-size:13px; color:#7a9080; }
+      .check-row input[type="checkbox"] { width:16px; height:16px; accent-color:#4ade80; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="brand">
+        <div class="brand-logo">⛳</div>
+        <div class="brand-name">Birdie<span>Board</span></div>
+        <div class="brand-sub">Keep score. Build rivalries. Create history.</div>
+      </div>
+
+      <div class="card">
+        <% if flash[:alert].present? %>
+          <div class="flash-alert"><%= flash[:alert] %></div>
+        <% end %>
+        <% if flash[:notice].present? %>
+          <div class="flash-notice"><%= flash[:notice] %></div>
+        <% end %>
+
+        <%= yield %>
+      </div>
+    </div>
+  </body>
+</html>

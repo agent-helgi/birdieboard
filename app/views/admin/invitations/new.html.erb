@@ -1,0 +1,43 @@
+<h1>Invite Players</h1>
+<p class="subtitle"><%= @tournament.name %> — paste email addresses below</p>
+
+<div class="card">
+  <%= form_with url: admin_tournament_invitations_path(@tournament), data: { turbo: false } do |f| %>
+    <div style="margin-bottom:16px;">
+      <label style="display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:8px;letter-spacing:.04em;text-transform:uppercase;">
+        Email Addresses
+      </label>
+      <%= f.text_area :invitation_emails,
+          name: "invitation[emails]",
+          rows: 8,
+          placeholder: "jack@example.com\nbilly@example.com\njohn@example.com\n\nOne per line, or comma-separated.",
+          style: "width:100%;background:var(--bg);border:1px solid var(--border-2);border-radius:7px;padding:10px 14px;color:var(--text);font-size:13px;font-family:var(--mono);resize:vertical;line-height:1.6;" %>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">
+        Each address gets a personal magic link. Existing invitees are skipped (no duplicate sends).
+      </div>
+    </div>
+
+    <div class="actions" style="margin:0;">
+      <%= f.submit "Send Invitations", class: "btn btn-primary" %>
+      <%= link_to "Cancel", admin_tournament_invitations_path(@tournament), class: "btn btn-secondary" %>
+    </div>
+  <% end %>
+</div>
+
+<% if @tournament.invitations.any? %>
+  <div style="margin-top:24px;">
+    <h2>Already Invited (<%= @tournament.invitations.count %>)</h2>
+    <table>
+      <thead><tr><th>Email</th><th>Status</th><th>Player</th></tr></thead>
+      <tbody>
+        <% @tournament.invitations.order(:email).each do |inv| %>
+          <tr>
+            <td style="font-family:var(--mono);font-size:12px;"><%= inv.email %></td>
+            <td><span class="badge badge-<%= inv.status == 'accepted' ? 'approved' : 'new' %>"><%= inv.status %></span></td>
+            <td><%= inv.user&.full_name || "—" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

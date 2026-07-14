@@ -1,0 +1,134 @@
+<div style="display:flex;align-items:start;justify-content:space-between;margin-bottom:6px;gap:12px;">
+  <div>
+    <h1><%= @tournament.name %></h1>
+    <p class="subtitle"><%= [@tournament.location, @tournament.date&.strftime("%-d %B %Y")].compact.join(" · ") %></p>
+  </div>
+  <div style="display:flex;gap:8px;flex-shrink:0;">
+    <span class="badge badge-<%= @tournament.state %>" style="align-self:center;"><%= @tournament.state %></span>
+    <%= link_to "Edit", edit_admin_tournament_path(@tournament), class: "btn btn-secondary btn-sm" %>
+    <% if @tournament.state == "draft" %>
+      <%= button_to "Open for Entries", open_admin_tournament_path(@tournament), method: :post, class: "btn btn-primary btn-sm", data: { turbo: false } %>
+    <% elsif @tournament.state == "open" %>
+      <%= button_to "Close Tournament", close_admin_tournament_path(@tournament), method: :post, class: "btn btn-danger btn-sm", data: { turbo: false } %>
+    <% end %>
+  </div>
+</div>
+
+<!-- Stats row -->
+<div class="stat-row">
+  <div class="stat">
+    <div class="stat-number"><%= @tournament.invitations.count %></div>
+    <div class="stat-label">Invited</div>
+  </div>
+  <div class="stat">
+    <div class="stat-number"><%= @tournament.entries.count %></div>
+    <div class="stat-label">Entered</div>
+  </div>
+  <div class="stat">
+    <div class="stat-number"><%= @tournament.entries.paid.count %></div>
+    <div class="stat-label">Paid</div>
+  </div>
+  <div class="stat">
+    <div class="stat-number"><%= @rounds.count %></div>
+    <div class="stat-label">Rounds</div>
+  </div>
+</div>
+
+<!-- Details + Fees -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+  <div class="card" style="margin:0;">
+    <h2 style="margin-bottom:14px;">Details</h2>
+    <div class="info-row"><span class="info-label">Format</span><span class="info-value" style="text-transform:capitalize;"><%= @tournament.format %></span></div>
+    <div class="info-row"><span class="info-label">Teams</span><span class="info-value"><%= @tournament.team1_name %> vs <%= @tournament.team2_name %></span></div>
+    <% if @tournament.team_trophy.present? %>
+      <div class="info-row"><span class="info-label">Team Trophy</span><span class="info-value"><%= @tournament.team_trophy %></span></div>
+    <% end %>
+    <% if @tournament.individual_trophy.present? %>
+      <div class="info-row"><span class="info-label">Ind. Trophy</span><span class="info-value"><%= @tournament.individual_trophy %></span></div>
+    <% end %>
+    <% if @tournament.notes.present? %>
+      <div class="info-row" style="align-items:start;"><span class="info-label">Notes</span><span class="info-value" style="white-space:pre-wrap;"><%= @tournament.notes %></span></div>
+    <% end %>
+  </div>
+  <div class="card" style="margin:0;">
+    <h2 style="margin-bottom:14px;">Entry Fees</h2>
+    <div class="info-row"><span class="info-label">Tournament</span><span class="info-value">£<%= "%.2f" % @tournament.entry_fee %></span></div>
+    <div class="info-row"><span class="info-label">CTTP (each)</span><span class="info-value">£<%= "%.2f" % @tournament.cttp_fee %></span></div>
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--text-muted);">
+      Max per player: £<%= "%.2f" % (@tournament.entry_fee + @tournament.cttp_fee * 2) %>
+      (entry + both CTTPs)
+    </div>
+  </div>
+</div>
+
+<!-- Rounds -->
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+  <h2 style="margin:0;">Rounds</h2>
+  <%= link_to "＋ Add Round", new_admin_tournament_round_path(@tournament), class: "btn btn-secondary btn-sm" %>
+</div>
+
+<% if @rounds.empty? %>
+  <div class="card" style="text-align:center;padding:28px;margin-bottom:24px;">
+    <div style="color:var(--text-muted);font-size:13px;margin-bottom:12px;">No rounds set up yet. Add a round to define the course and scoring format.</div>
+    <%= link_to "Add First Round", new_admin_tournament_round_path(@tournament), class: "btn btn-secondary btn-sm" %>
+  </div>
+<% else %>
+  <table style="margin-bottom:24px;">
+    <thead><tr><th>Day</th><th>Course</th><th>Format</th><th>Par</th><th>Scores</th><th></th></tr></thead>
+    <tbody>
+      <% @rounds.each do |r| %>
+        <tr>
+          <td>Day <%= r.day_number %></td>
+          <td><%= r.course_name || "—" %></td>
+          <td style="text-transform:capitalize;"><%= r.format %></td>
+          <td><%= r.total_par > 0 ? r.total_par : "—" %></td>
+          <td><%= r.scores.count %> submitted</td>
+          <td style="text-align:right;">
+            <%= link_to "Edit", edit_admin_tournament_round_path(@tournament, r), class: "btn btn-secondary btn-sm" %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>
+
+<!-- Players / Entries -->
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+  <h2 style="margin:0;">Players</h2>
+  <%= link_to "✉️ Invite Players", new_admin_tournament_invitation_path(@tournament), class: "btn btn-secondary btn-sm" %>
+</div>
+
+<% if @entries.empty? %>
+  <div class="card" style="text-align:center;padding:28px;">
+    <div style="color:var(--text-muted);font-size:13px;margin-bottom:12px;">No entries yet. Send invitations so players can register and enter.</div>
+    <%= link_to "Send Invitations", new_admin_tournament_invitation_path(@tournament), class: "btn btn-secondary btn-sm" %>
+  </div>
+<% else %>
+  <table>
+    <thead><tr><th>Player</th><th>Handicap</th><th>Team</th><th>CTTP</th><th>Paid</th></tr></thead>
+    <tbody>
+      <% @entries.each do |e| %>
+        <tr>
+          <td>
+            <div style="font-weight:600;"><%= e.user.full_name %></div>
+            <div style="font-size:12px;color:var(--text-muted);"><%= e.user.email %></div>
+          </td>
+          <td><%= e.playing_handicap || "—" %></td>
+          <td><%= e.team&.capitalize || "—" %></td>
+          <td>
+            <%= e.entered_cttp_front ? "Front" : "" %>
+            <%= e.entered_cttp_back  ? " Back" : "" %>
+            <%= (!e.entered_cttp_front && !e.entered_cttp_back) ? "—" : "" %>
+          </td>
+          <td>
+            <% if e.paid? %>
+              <span class="badge badge-approved">Paid</span>
+            <% else %>
+              <span class="badge badge-skipped">Unpaid</span>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>

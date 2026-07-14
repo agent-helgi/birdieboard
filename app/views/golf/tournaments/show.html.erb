@@ -1,0 +1,94 @@
+<div style="display:flex;align-items:start;justify-content:space-between;margin-bottom:6px;gap:12px;">
+  <div>
+    <h1><%= @tournament.name %></h1>
+    <p class="subtitle"><%= [@tournament.location, @tournament.date&.strftime("%-d %B %Y")].compact.join(" · ") %></p>
+  </div>
+  <span class="badge badge-<%= @tournament.state %>" style="align-self:center;"><%= @tournament.state %></span>
+</div>
+
+<!-- Entry status / CTA -->
+<% if @entry %>
+  <div class="card" style="border-color:rgba(74,222,128,0.25);margin-bottom:24px;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="font-size:28px;">✅</div>
+      <div>
+        <div style="font-weight:700;font-size:15px;">You're entered</div>
+        <div style="font-size:13px;color:var(--muted);">Handicap: <%= @entry.playing_handicap || "—" %> · Team: <%= @entry.team&.capitalize || "—" %> · <span class="badge badge-<%= @entry.paid? ? 'paid' : 'unpaid' %>"><%= @entry.paid? ? "Paid" : "Payment pending" %></span></div>
+      </div>
+    </div>
+  </div>
+<% elsif @tournament.state.in?(%w[open active]) %>
+  <div class="card" style="border-color:rgba(251,191,36,0.3);margin-bottom:24px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <div>
+        <div style="font-weight:700;font-size:15px;">Complete your entry</div>
+        <div style="font-size:13px;color:var(--muted);">Confirm your handicap and select your entry options.</div>
+      </div>
+      <%= link_to "Enter Now →", new_golf_tournament_entry_path(@tournament), class: "btn btn-primary" %>
+    </div>
+  </div>
+<% end %>
+
+<!-- Rounds -->
+<% if @rounds.any? %>
+  <h2>Rounds</h2>
+  <div style="display:grid;gap:10px;margin-bottom:24px;">
+    <% @rounds.each do |r| %>
+      <div class="card" style="margin:0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-weight:700;">Day <%= r.day_number %> — <%= r.course_name || "TBC" %></div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px;">Par <%= r.total_par %> · <%= r.format&.capitalize %></div>
+          </div>
+          <% my_score = r.scores.find_by(user: current_user) %>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <% if my_score %>
+              <span class="badge badge-<%= my_score.status %>"><%= my_score.status %></span>
+              <%= link_to "Edit Scores", edit_golf_tournament_round_score_path(@tournament, r, my_score), class: "btn btn-secondary btn-sm" %>
+            <% elsif @entry %>
+              <%= link_to "Enter Scores", new_golf_tournament_round_score_path(@tournament, r), class: "btn btn-primary btn-sm" %>
+            <% end %>
+          </div>
+        </div>
+        <% if my_score&.gross_scores&.any? %>
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:13px;color:var(--muted);">
+            Stableford total: <span style="color:var(--green-l);font-weight:700;font-size:16px;"><%= my_score.stableford_total %> pts</span>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
+<!-- Leaderboard -->
+<h2>Leaderboard</h2>
+<% all_scores = @rounds.flat_map { |r| r.scores.approved.includes(:user) }
+   leaderboard = all_scores.group_by(&:user)
+                           .map { |user, scores| [user, scores.sum { |s| s.stableford_total || 0 }] }
+                           .sort_by { |_, pts| -pts }
+%>
+
+<% if leaderboard.empty? %>
+  <div class="card" style="text-align:center;padding:28px;color:var(--muted);font-size:13px;">
+    No approved scores yet — the leaderboard will appear once players submit and countersign their cards.
+  </div>
+<% else %>
+  <div class="card" style="padding:0;overflow:hidden;">
+    <table>
+      <thead><tr><th style="width:40px;">#</th><th>Player</th><th style="text-align:right;">Pts</th></tr></thead>
+      <tbody>
+        <% leaderboard.each_with_index do |(user, pts), i| %>
+          <tr>
+            <td style="font-weight:700;font-family:var(--mono);color:var(--muted);"><%= i+1 %></td>
+            <td>
+              <span style="font-weight:<%= i < 3 ? '700' : '400' %>;color:<%= i == 0 ? 'var(--green-l)' : 'var(--text)' %>;">
+                <%= i == 0 ? "🏆 " : "" %><%= user.full_name %>
+              </span>
+            </td>
+            <td style="text-align:right;font-family:var(--mono);font-weight:700;color:var(--green-l);font-size:16px;"><%= pts %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

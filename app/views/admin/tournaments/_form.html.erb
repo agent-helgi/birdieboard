@@ -1,0 +1,112 @@
+<%= form_with model: [:admin, tournament], data: { turbo: false } do |f| %>
+  <% if tournament.errors.any? %>
+    <div class="flash-alert">
+      <% tournament.errors.full_messages.each do |msg| %>
+        <div><%= msg %></div>
+      <% end %>
+    </div>
+  <% end %>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+    <div class="card" style="margin:0;">
+      <h2 style="margin-bottom:16px;">Tournament Details</h2>
+
+      <div style="margin-bottom:14px;">
+        <%= f.label :name, "Tournament Name", style: "display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase;" %>
+        <%= f.text_field :name, placeholder: "e.g. Sturdy Swings 2026", style: "width:100%;background:var(--bg);border:1px solid var(--border-2);border-radius:7px;padding:9px 12px;color:var(--text);font-size:14px;font-family:inherit;" %>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <%= f.label :location, "Location / Course", style: "display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase;" %>
+        <%= f.text_field :location, placeholder: "e.g. Witney Lakes Golf Club", style: "width:100%;background:var(--bg);border:1px solid var(--border-2);border-radius:7px;padding:9px 12px;color:var(--text);font-size:14px;font-family:inherit;" %>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <%= f.label :date, "Date", style: "display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase;" %>
+        <%= f.date_field :date, style: "width:100%;background:var(--bg);border:1px solid var(--border-2);border-radius:7px;padding:9px 12px;color:var(--text);font-size:14px;font-family:inherit;" %>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <%= f.label :format, "Format", style: "display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase;" %>
+        <%= f.select :format, [["Stableford","stableford"],["Pairs / Joint Stableford","pairs"],["Matchplay","matchplay"]],
+            {}, style: "width:100%;background:var(--bg);border:1px solid var(--border-2);border-radius:7px;padding:9px 12px;color:var(--text);font-size:14px;font-family:inherit;" %>
+      </div>
+
+      <div style="margin-bottom:0;">
+        <%= f.label :notes, "Notes (optional)", style: "display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase;" %>
+        <%= f.text_area :notes, rows: 3, placeholder: "Any notes visible to players…", style: "width:100%;background:var(--bg);border:1px solid var(--border-2);border-radius:7px;padding:9px 12px;color:var(--text);font-size:14px;font-family:inherit;resize:vertical;" %>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="margin:0 0 16px;">
+        <h2 style="margin-bottom:16px;">Teams & Trophies</h2>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+          <div>
+            <%= f.label :team1_name, "Team 1 Name", style: "display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase;" %>
+            <%= f.text_field :team1_name, placeholder: "Team HUD", style: "width:100%;background:var(--bg);border:1px solid var(--border-2);border-radius:7px;padding:9px 12px;color:var(--text);font-size:14px;font-family:inherit;" %>
+          </div>
+          <div>
+            <%= f.label :team2_name, "Team 2 Name", style: "display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase;" %>
+            <%= f.text_field :team2_name, placeholder: "Team PEP", style: "width:100%;background:var(--bg);border:1px solid var(--border-2);border-radius:7px;padding:9px 12px;color:var(--text);font-size:14px;font-family:inherit;" %>
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <%= f.label :team_trophy, "Team Trophy Name", style: "display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase;" %>
+          <%= f.text_field :team_trophy, placeholder: "The Jigger Cup", style: "width:100%;background:var(--bg);border:1px solid var(--border-2);border-radius:7px;padding:9px 12px;color:var(--text);font-size:14px;font-family:inherit;" %>
+        </div>
+
+        <div>
+          <%= f.label :individual_trophy, "Individual Trophy Name", style: "display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase;" %>
+          <%= f.text_field :individual_trophy, placeholder: "The Golden Wedge", style: "width:100%;background:var(--bg);border:1px solid var(--border-2);border-radius:7px;padding:9px 12px;color:var(--text);font-size:14px;font-family:inherit;" %>
+        </div>
+      </div>
+
+      <div class="card" style="margin:0;">
+        <h2 style="margin-bottom:16px;">Entry Fees</h2>
+
+        <div style="margin-bottom:14px;">
+          <%= f.label :entry_fee_pence, "Tournament Entry Fee (£)", style: "display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase;" %>
+          <div style="position:relative;">
+            <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);">£</span>
+            <input type="number" name="tournament[entry_fee_pence]" id="entry_fee_display"
+              value="<%= tournament.entry_fee_pence / 100 %>"
+              min="0" step="1"
+              style="width:100%;background:var(--bg);border:1px solid var(--border-2);border-radius:7px;padding:9px 12px 9px 28px;color:var(--text);font-size:14px;font-family:inherit;"
+              oninput="this.value=Math.round(this.value*100)/100">
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Enter amount in pounds (e.g. 10 = £10.00). Stored as pence.</div>
+        </div>
+
+        <div>
+          <%= f.label :cttp_fee_pence, "CTTP Fee per pin (£)", style: "display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase;" %>
+          <div style="position:relative;">
+            <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);">£</span>
+            <input type="number" name="tournament[cttp_fee_pence]" id="cttp_fee_display"
+              value="<%= tournament.cttp_fee_pence / 100 %>"
+              min="0" step="1"
+              style="width:100%;background:var(--bg);border:1px solid var(--border-2);border-radius:7px;padding:9px 12px 9px 28px;color:var(--text);font-size:14px;font-family:inherit;"
+              oninput="this.value=Math.round(this.value*100)/100">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <%= f.submit tournament.persisted? ? "Save Changes" : "Create Tournament", class: "btn btn-primary" %>
+    <%= link_to "Cancel", tournament.persisted? ? admin_tournament_path(tournament) : admin_tournaments_path, class: "btn btn-secondary" %>
+  </div>
+
+  <script>
+    // Convert pound inputs to pence before submit
+    document.querySelector('form').addEventListener('submit', function() {
+      ['entry_fee_display','cttp_fee_display'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.value = Math.round(parseFloat(el.value || 0) * 100);
+      });
+    });
+  </script>
+<% end %>

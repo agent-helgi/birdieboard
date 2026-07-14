@@ -1,0 +1,127 @@
+<%
+  entry = tournament.entries.find_by(user: current_user)
+  hc    = entry&.playing_handicap || current_user.handicap_index&.to_i || 0
+  par   = round.course_par || []
+  si    = round.course_si  || []
+  gross = score.gross_scores || Array.new(18, nil)
+
+  def stroke_holes(hc, si_arr)
+    si_arr.map.with_index { |s, i| s <= hc ? i : nil }.compact
+  end
+%>
+
+<%= form_with model: [:golf, tournament, round, score], data: { turbo: false } do |f| %>
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div class="card-header">
+      <span>Gross Scores — <%= round.course_name %> (Par <%= round.total_par %>)</span>
+      <span style="font-size:12px;color:var(--muted);">Your handicap: <%= hc %></span>
+    </div>
+
+    <div style="overflow-x:auto;padding:16px;">
+      <table style="min-width:640px;">
+        <thead>
+          <tr>
+            <th style="width:70px;">Hole</th>
+            <% (1..18).each do |h| %><th style="text-align:center;padding:6px 4px;min-width:42px;"><%= h %></th><% end %>
+            <th style="text-align:center;">Total</th>
+          </tr>
+          <tr>
+            <th style="font-size:10px;">Par</th>
+            <% par.each do |p| %><th style="text-align:center;font-size:12px;color:var(--muted);font-weight:400;"><%= p %></th><% end %>
+            <th style="text-align:center;font-size:12px;color:var(--muted);font-weight:400;"><%= par.sum %></th>
+          </tr>
+          <tr>
+            <th style="font-size:10px;">S/I</th>
+            <% si.each do |s| %><th style="text-align:center;font-size:12px;color:var(--muted);font-weight:400;"><%= s %></th><% end %>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;">Gross</td>
+            <% (0..17).each do |i| %>
+              <td style="padding:4px 2px;text-align:center;">
+                <input type="number" name="score[gross_scores][]"
+                  value="<%= gross[i] %>"
+                  min="1" max="15"
+                  data-hole="<%= i %>"
+                  data-par="<%= par[i] %>"
+                  data-si="<%= si[i] %>"
+                  data-hc="<%= hc %>"
+                  style="width:40px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 4px;color:var(--text);font-size:14px;font-family:var(--mono);text-align:center;"
+                  oninput="updatePoints(this)">
+              </td>
+            <% end %>
+            <td style="text-align:center;font-weight:700;font-size:14px;color:var(--green-l);font-family:var(--mono);" id="gross-total">
+              <%= gross.compact.sum %>
+            </td>
+          </tr>
+          <tr>
+            <td style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;">Pts</td>
+            <% (0..17).each do |i| %>
+              <td style="padding:4px 2px;text-align:center;">
+                <span id="pts-<%= i %>" style="font-size:12px;font-weight:700;font-family:var(--mono);color:var(--muted);">—</span>
+              </td>
+            <% end %>
+            <td style="text-align:center;font-weight:800;font-size:16px;color:var(--green-l);font-family:var(--mono);" id="pts-total">—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="actions">
+    <%= f.submit "Save Draft", class: "btn btn-secondary" %>
+    <% if score.persisted? && score.draft? %>
+      <%= button_to "Submit for Approval", submit_golf_tournament_round_score_path(tournament, round, score),
+          method: :post, class: "btn btn-primary", data: { turbo: false, confirm: "Submit this scorecard? Your playing partner will be asked to countersign." } %>
+    <% end %>
+    <%= link_to "Cancel", golf_tournament_path(tournament), class: "btn btn-secondary" %>
+  </div>
+<% end %>
+
+<script>
+  function stablefordPoints(gross, par, si, hc) {
+    if (!gross) return null;
+    var strokes = si <= hc ? 1 : 0;
+    if (hc >= 18 && si <= (hc - 18)) strokes = 2;
+    var net = gross - strokes;
+    return Math.max(0, 2 + par - net);
+  }
+
+  function updatePoints(input) {
+    var i    = parseInt(input.dataset.hole);
+    var par  = parseInt(input.dataset.par);
+    var si   = parseInt(input.dataset.si);
+    var hc   = parseInt(input.dataset.hc);
+    var gross = parseInt(input.value) || null;
+    var pts  = stablefordPoints(gross, par, si, hc);
+
+    var el = document.getElementById('pts-' + i);
+    if (pts !== null) {
+      el.textContent = pts;
+      el.style.color = pts >= 3 ? '#4ade80' : pts === 2 ? '#f0f0ee' : pts === 0 ? '#f87171' : '#fbbf24';
+    } else {
+      el.textContent = '—';
+      el.style.color = 'var(--muted)';
+    }
+    recalcTotals();
+  }
+
+  function recalcTotals() {
+    var grossTotal = 0, ptsTotal = 0, hasPts = false;
+    document.querySelectorAll('[data-hole]').forEach(function(inp) {
+      grossTotal += parseInt(inp.value) || 0;
+      var i = parseInt(inp.dataset.hole);
+      var v = document.getElementById('pts-' + i).textContent;
+      if (v !== '—') { ptsTotal += parseInt(v); hasPts = true; }
+    });
+    document.getElementById('gross-total').textContent = grossTotal || '—';
+    document.getElementById('pts-total').textContent   = hasPts ? ptsTotal : '—';
+  }
+
+  // Init on load
+  document.querySelectorAll('[data-hole]').forEach(function(inp) {
+    if (inp.value) updatePoints(inp);
+  });
+</script>

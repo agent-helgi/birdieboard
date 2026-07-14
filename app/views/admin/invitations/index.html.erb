@@ -1,0 +1,42 @@
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+  <div>
+    <h1>Invitations</h1>
+    <p class="subtitle"><%= @tournament.name %></p>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <%= link_to "＋ Invite Players", new_admin_tournament_invitation_path(@tournament), class: "btn btn-primary btn-sm" %>
+    <%= link_to "← Tournament", admin_tournament_path(@tournament), class: "btn btn-secondary btn-sm" %>
+  </div>
+</div>
+
+<% if @invitations.empty? %>
+  <div class="card" style="text-align:center;padding:36px;">
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">No invitations sent yet.</div>
+    <%= link_to "Send Invitations", new_admin_tournament_invitation_path(@tournament), class: "btn btn-primary btn-sm" %>
+  </div>
+<% else %>
+  <table>
+    <thead><tr><th>Email</th><th>Status</th><th>Player</th><th>Sent</th><th></th></tr></thead>
+    <tbody>
+      <% @invitations.each do |inv| %>
+        <tr>
+          <td style="font-family:var(--mono);font-size:12px;"><%= inv.email %></td>
+          <td>
+            <span class="badge badge-<%= inv.status == 'accepted' ? 'approved' : (inv.status == 'pending' ? 'new' : 'skipped') %>">
+              <%= inv.status %>
+            </span>
+          </td>
+          <td><%= inv.user&.full_name || "—" %></td>
+          <td style="font-size:12px;color:var(--text-muted);"><%= inv.sent_at&.strftime("%-d %b %H:%M") || "—" %></td>
+          <td style="text-align:right;">
+            <% unless inv.accepted? %>
+              <%= button_to "Remove", admin_tournament_invitation_path(@tournament, inv),
+                  method: :delete, class: "btn btn-danger btn-sm",
+                  data: { confirm: "Remove this invitation?", turbo: false } %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>
