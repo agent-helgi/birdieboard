@@ -1,6 +1,8 @@
 <%
-  witney_lakes_par = [4,4,4,4,5,3,4,3,5,4,4,3,5,4,3,4,4,4]
-  witney_lakes_si  = [7,17,1,5,13,15,3,11,9,18,12,8,16,2,14,10,4,6]
+  witney_lakes_par      = [4,4,4,4,5,3,4,3,5,4,4,3,5,4,3,4,4,4]
+  witney_lakes_si       = [7,17,1,5,13,15,3,11,9,18,12,8,16,2,14,10,4,6]
+  goring_streatley_par  = [4,4,4,3,5,4,4,4,3,4,4,3,4,4,5,3,5,4]
+  goring_streatley_si   = [13,3,5,11,15,7,1,9,17,2,8,16,6,12,14,4,18,10]
 
   current_par = round.course_par || Array.new(18, nil)
   current_si  = round.course_si  || Array.new(18, nil)
@@ -34,6 +36,7 @@
     <div style="margin-bottom:16px;display:flex;gap:8px;align-items:center;">
       <span style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;">Load Preset:</span>
       <button type="button" class="btn btn-secondary btn-sm" onclick="loadPreset('witney')">Witney Lakes</button>
+      <button type="button" class="btn btn-secondary btn-sm" onclick="loadPreset('goring')">Goring & Streatley</button>
     </div>
 
     <!-- 18-hole grid -->
@@ -92,12 +95,21 @@
     witney: {
       par: <%= witney_lakes_par.to_json %>,
       si:  <%= witney_lakes_si.to_json %>
+    },
+    goring: {
+      name: "Goring & Streatley Golf Club",
+      par:  <%= goring_streatley_par.to_json %>,
+      si:   <%= goring_streatley_si.to_json %>
     }
   };
 
   function loadPreset(key) {
     var p = PRESETS[key];
     if (!p) return;
+    if (p.name) {
+      var nameField = document.querySelector('[name="round[course_name]"]');
+      if (nameField) nameField.value = p.name;
+    }
     document.querySelectorAll('[data-type="par"]').forEach(function(el) {
       el.value = p.par[parseInt(el.dataset.hole)];
     });
