@@ -1,3 +1,11 @@
-<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="256" cy="256" r="256" fill="red"/>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="112" fill="#070d09"/>
+  <circle cx="256" cy="210" r="88" fill="none" stroke="#1a9e3f" stroke-width="14"/>
+  <circle cx="256" cy="210" r="10" fill="#4ade80"/>
+  <!-- flag stick -->
+  <line x1="256" y1="298" x2="256" y2="390" stroke="#4ade80" stroke-width="8" stroke-linecap="round"/>
+  <!-- flag -->
+  <polygon points="256,298 308,318 256,338" fill="#4ade80"/>
+  <!-- ground line -->
+  <line x1="200" y1="390" x2="312" y2="390" stroke="#1a9e3f" stroke-width="6" stroke-linecap="round"/>
 </svg>
