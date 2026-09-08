@@ -10,6 +10,12 @@ class Round < ApplicationRecord
     Array(course_par).sum
   end
 
+  # WHS Course Handicap = Handicap Index × (Slope / 113), rounded
+  def course_handicap(handicap_index)
+    return handicap_index.to_i unless slope_rating.present?
+    (handicap_index.to_f * slope_rating / 113.0).round
+  end
+
   # Stableford points for one hole
   def stableford_points(gross, par, si, playing_handicap)
     strokes = (playing_handicap * si / 18.0).ceil

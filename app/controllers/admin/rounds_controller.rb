@@ -36,6 +36,7 @@ module Admin
 
     def round_params
       p = params.require(:round).permit(:day_number, :course_name, :format,
+                                        :slope_rating, :course_rating,
                                         course_par: [], course_si: [])
       p[:course_par] = p[:course_par].map(&:to_i) if p[:course_par]
       p[:course_si]  = p[:course_si].map(&:to_i)  if p[:course_si]
